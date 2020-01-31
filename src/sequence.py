@@ -7,6 +7,7 @@ from functools import partial
 
 from sklearn.linear_model import RidgeClassifierCV
 
+import tqdm
 
 def generate_extractor(sequences, max_length=10):
     sid = np.random.randint(low=0, high=len(sequences))
@@ -20,7 +21,7 @@ def generate_extractor(sequences, max_length=10):
 
 def generate_features(sequences, n):
     fs = np.ndarray(n, dtype='object')
-    for i in range(n):
+    for i in tqdm.tqdm(range(n)):
         s = generate_extractor(sequences)
         while s in fs:
             print(".", end='')
@@ -46,7 +47,7 @@ def match(A, hs):
 
 def create_fvec(sequences, A, n_jobs=1):
     p = Pool(n_jobs)
-    f_vec = p.map(partial(match, A), sequences)
+    f_vec = list(tqdm.tqdm(p.imap(partial(match, A), sequences), total=len(sequences)))
     return f_vec
 
 
