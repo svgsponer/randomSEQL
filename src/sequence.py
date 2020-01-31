@@ -44,8 +44,8 @@ def match(A, hs):
     return vec
 
 
-def create_fvec(sequences, A):
-    p = Pool(6)
+def create_fvec(sequences, A, n_jobs=1):
+    p = Pool(n_jobs)
     f_vec = p.map(partial(match, A), sequences)
     return f_vec
 
@@ -54,7 +54,8 @@ def create_fvec(sequences, A):
 @click.option('--train_file', '-t', help="Training file")
 @click.option('--test_file', '-s', help="Test file")
 @click.option('--num_seq', '-n', default=10, help="Number of random sequences")
-def run(train_file, test_file, num_seq):
+@click.option('--n_jobs', '-j', default=1, help="Number of parallel jobs")
+def run(train_file, test_file, num_seq, n_jobs):
     print("Load train data")
     y, s = load_data(train_file)
 
@@ -68,7 +69,7 @@ def run(train_file, test_file, num_seq):
     A.make_automaton()
 
     print("Extract Feautre Vectors of train data")
-    fvec = create_fvec(s, A)
+    fvec = create_fvec(s, A, n_jobs)
 
     print("Learn classifier")
     cls = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10), normalize=True)
@@ -77,7 +78,7 @@ def run(train_file, test_file, num_seq):
     print("Load test data")
     y_test, s_test = load_data(test_file)
     print("Extract Feature Vector of test data")
-    fvec_test = create_fvec(s_test, A)
+    fvec_test = create_fvec(s_test, A, n_jobs)
 
     print("Predict")
     print(cls.score(fvec_test, y_test))
